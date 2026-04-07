@@ -1,0 +1,43 @@
+from kivy.app import App
+from kivy.clock import Clock
+from plyer import accelerometer, flashlight
+
+class ShakeFlashApp(App):
+    def build(self):
+        accelerometer.enable()
+        self.last_accel = (0, 0, 0)
+        self.flash_on = False
+        Clock.schedule_interval(self.detect_shake, 0.2)
+        return None
+
+    def detect_shake(self, dt):
+        val = accelerometer.acceleration
+        if val != (None, None, None):
+            x, y, z = val
+
+            # Calculate change in acceleration
+            dx = abs(x - self.last_accel[0])
+            dy = abs(y - self.last_accel[1])
+            dz = abs(z - self.last_accel[2])
+
+            # Shake threshold
+            if dx + dy + dz > 15:
+                self.toggle_flash()
+
+            self.last_accel = (x, y, z)
+
+    def toggle_flash(self):
+        try:
+            if self.flash_on:
+                flashlight.off()
+                print("Flash OFF")
+            else:
+                flashlight.on()
+                print("Flash ON")
+
+            self.flash_on = not self.flash_on
+        except:
+            print("Flashlight not supported")
+
+if __name__ == "__main__":
+    ShakeFlashApp().run()
